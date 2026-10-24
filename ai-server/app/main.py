@@ -5,6 +5,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 
 from .routes.identify import identify_bp
+from .services.vision_service import provider_status
 
 # 환경 변수 로드
 load_dotenv()
@@ -20,7 +21,8 @@ def create_app():
         return jsonify({
             "status": "online",
             "service": "PlantForge AI Server",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "provider": provider_status(),
         }), 200
 
     # 블루프린트 등록

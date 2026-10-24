@@ -53,10 +53,12 @@ backend/
   ```json
   {
     "nickname": "몬이",
-    "species": "Monstera Deliciosa",
+    "species": "Monstera deliciosa",
+    "common_name": "몬스테라",
     "scientific_name": "Monstera deliciosa",
-    "care_guide": { ... },
-    "image_path": "/uploads/plant-xxx.jpg"
+    "care_guide": { "watering": "...", "light": "..." },
+    "image_path": "/uploads/plant-xxx.jpg",
+    "identification_id": 1
   }
   ```
 - `DELETE /api/plants/:id` : 특정 식물 삭제
