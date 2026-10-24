@@ -1,15 +1,37 @@
 <script>
-  import { plantCollection } from '../stores/plants.js';
+  import { createEventDispatcher } from 'svelte';
+  import { plantCollection, collectionLoading } from '../stores/plants.js';
+  import { deletePlantApi, resolveImageUrl } from '../api/plant.js';
 
+  const dispatch = createEventDispatcher();
   let selectedPlant = null;
 
-  function removePlant(id, event) {
+  function imageOf(plant) {
+    return resolveImageUrl(plant?.image_path);
+  }
+
+  function registeredOn(plant) {
+    const value = plant?.created_at || '';
+    return String(value).slice(0, 10);
+  }
+
+  function shortTip(text, limit = 22) {
+    if (!text) return '';
+    const sentence = String(text).split(/[.。]/)[0];
+    return sentence.length > limit ? `${sentence.slice(0, limit)}…` : sentence;
+  }
+
+  async function removePlant(id, event) {
     event.stopPropagation();
-    if (confirm('이 식물을 내 컬렉션에서 삭제하시겠습니까?')) {
-      plantCollection.update(list => list.filter(item => item.id !== id));
+    if (!confirm('이 식물을 내 컬렉션에서 삭제할까요?')) return;
+    try {
+      await deletePlantApi(id);
+      plantCollection.update((list) => list.filter((item) => item.id !== id));
       if (selectedPlant?.id === id) {
         selectedPlant = null;
       }
+    } catch (err) {
+      dispatch('error', { message: err.message || '식물을 삭제하지 못했습니다.' });
     }
   }
 
@@ -30,7 +52,12 @@
     </div>
   </div>
 
-  {#if $plantCollection.length === 0}
+  {#if $collectionLoading}
+    <div class="empty-state card">
+      <h3>정원 목록을 불러오는 중입니다</h3>
+      <p>SQLite에 저장된 식물을 확인하고 있습니다.</p>
+    </div>
+  {:else if $plantCollection.length === 0}
     <div class="empty-state card">
       <div class="empty-icon">🌱</div>
       <h3>아직 등록된 식물이 없습니다</h3>
@@ -47,7 +74,11 @@
           on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && openDetails(plant)}
         >
           <div class="img-wrapper">
-            <img src={plant.image_path} alt={plant.nickname} class="plant-img" />
+            {#if plant.image_path}
+              <img src={imageOf(plant)} alt={plant.nickname} class="plant-img" />
+            {:else}
+              <div class="plant-img missing-photo">🌿</div>
+            {/if}
             <button
               type="button"
               class="del-btn"
@@ -60,14 +91,18 @@
           <div class="plant-body">
             <div class="title-row">
               <h4 class="plant-nickname">{plant.nickname}</h4>
-              <span class="reg-date">{plant.created_at}</span>
+              <span class="reg-date">{registeredOn(plant)}</span>
             </div>
             <p class="plant-species">{plant.common_name || plant.species}</p>
             <p class="plant-scientific"><i>{plant.scientific_name || ''}</i></p>
 
             <div class="tags">
-              <span class="care-badge">💧 주 1~2회</span>
-              <span class="care-badge">☀️ 반양지</span>
+              {#if plant.care_guide?.watering}
+                <span class="care-badge">💧 {shortTip(plant.care_guide.watering)}</span>
+              {/if}
+              {#if plant.care_guide?.light}
+                <span class="care-badge">☀️ {shortTip(plant.care_guide.light)}</span>
+              {/if}
             </div>
           </div>
         </div>
@@ -93,12 +128,16 @@
       >
         <button class="modal-close-btn" on:click={closeDetails}>✕</button>
         <div class="modal-header">
-          <img src={selectedPlant.image_path} alt={selectedPlant.nickname} class="modal-img" />
+          {#if selectedPlant.image_path}
+            <img src={imageOf(selectedPlant)} alt={selectedPlant.nickname} class="modal-img" />
+          {:else}
+            <div class="modal-img missing-photo">🌿</div>
+          {/if}
           <div class="modal-info">
             <span class="badge badge-green">반려식물 프로필</span>
             <h2>{selectedPlant.nickname}</h2>
             <p class="modal-species">{selectedPlant.common_name || selectedPlant.species} ({selectedPlant.scientific_name})</p>
-            <p class="modal-date">등록일: {selectedPlant.created_at}</p>
+            <p class="modal-date">등록일: {registeredOn(selectedPlant)}</p>
           </div>
         </div>
 
@@ -119,8 +158,16 @@
                 <strong>🌱 토양:</strong> {selectedPlant.care_guide.soil}
               </div>
               <div class="guide-item">
+                <strong>🧪 비료:</strong> {selectedPlant.care_guide.fertilizer}
+              </div>
+              <div class="guide-item">
                 <strong>⚠️ 주의사항:</strong> {selectedPlant.care_guide.notes}
               </div>
+              {#if selectedPlant.care_guide.seasonal_tip}
+                <div class="guide-item">
+                  <strong>💡 계절 팁:</strong> {selectedPlant.care_guide.seasonal_tip}
+                </div>
+              {/if}
             </div>
           {:else}
             <p>등록된 관리 가이드 정보가 없습니다.</p>
@@ -204,6 +251,14 @@
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
+  }
+
+  .missing-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e7f5ec;
+    font-size: 2.4rem;
   }
 
   .plant-card:hover .plant-img {

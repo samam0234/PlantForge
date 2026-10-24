@@ -13,10 +13,7 @@ router.get('/', (req, res) => {
     if (err) {
       return res.status(500).json({ success: false, message: err.message });
     }
-    const formatted = rows.map(row => ({
-      ...row,
-      care_guide: row.care_guide ? JSON.parse(row.care_guide) : null
-    }));
+    const formatted = rows.map((row) => formatPlant(row));
     return res.status(200).json({ success: true, plants: formatted });
   });
 });
@@ -34,17 +31,27 @@ router.get('/:id', (req, res) => {
     }
     return res.status(200).json({
       success: true,
-      plant: {
-        ...row,
-        care_guide: row.care_guide ? JSON.parse(row.care_guide) : null
-      }
+      plant: formatPlant(row)
     });
   });
 });
 
+function formatPlant(row) {
+  if (!row) return null;
+  let careGuide = null;
+  if (row.care_guide) {
+    try {
+      careGuide = JSON.parse(row.care_guide);
+    } catch {
+      careGuide = null;
+    }
+  }
+  return { ...row, care_guide: careGuide };
+}
+
 // POST /api/plants - 컬렉션에 식물 추가
 router.post('/', (req, res) => {
-  const { nickname, species, scientific_name, care_guide, image_path } = req.body;
+  const { nickname, species, common_name, scientific_name, care_guide, image_path, identification_id } = req.body;
 
   if (!nickname || !species) {
     return res.status(400).json({
@@ -54,21 +61,47 @@ router.post('/', (req, res) => {
   }
 
   const sql = `
-    INSERT INTO plants (nickname, species, scientific_name, care_guide, image_path)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO plants (nickname, species, common_name, scientific_name, care_guide, image_path)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
-  const guideJson = typeof care_guide === 'object' ? JSON.stringify(care_guide) : care_guide;
+  const guideJson = typeof care_guide === 'object' ? JSON.stringify(care_guide) : (care_guide || '');
 
-  db.run(sql, [nickname, species, scientific_name || '', guideJson, image_path || ''], function (err) {
-    if (err) {
-      return res.status(500).json({ success: false, message: err.message });
+  db.run(
+    sql,
+    [nickname, species, common_name || '', scientific_name || '', guideJson, image_path || ''],
+    function (err) {
+      if (err) {
+        return res.status(500).json({ success: false, message: err.message });
+      }
+
+      const plantId = this.lastID;
+      const finish = () => {
+        db.get(`SELECT * FROM plants WHERE id = ?`, [plantId], (getErr, row) => {
+          if (getErr) {
+            return res.status(500).json({ success: false, message: getErr.message });
+          }
+          return res.status(201).json({
+            success: true,
+            id: plantId,
+            plant: formatPlant(row),
+            message: '식물이 컬렉션에 등록되었습니다.'
+          });
+        });
+      };
+
+      const identificationId = Number(identification_id);
+      if (!identificationId) {
+        finish();
+        return;
+      }
+
+      db.run(
+        `UPDATE identifications SET plant_id = ? WHERE id = ?`,
+        [plantId, identificationId],
+        () => finish()
+      );
     }
-    return res.status(201).json({
-      success: true,
-      id: this.lastID,
-      message: '식물이 컬렉션에 성공적으로 등록되었습니다.'
-    });
-  });
+  );
 });
 
 // DELETE /api/plants/:id - 컬렉션에서 식물 삭제

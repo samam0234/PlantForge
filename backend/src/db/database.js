@@ -30,6 +30,7 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nickname TEXT NOT NULL,
       species TEXT NOT NULL,
+      common_name TEXT,
       scientific_name TEXT,
       care_guide TEXT,
       image_path TEXT,
@@ -49,6 +50,17 @@ db.serialize(() => {
       FOREIGN KEY(plant_id) REFERENCES plants(id) ON DELETE SET NULL
     )
   `);
+
+  db.all(`PRAGMA table_info(plants)`, (err, columns) => {
+    if (err) {
+      console.warn('plants 스키마 확인 실패:', err.message);
+      return;
+    }
+    const names = columns.map((column) => column.name);
+    if (!names.includes('common_name')) {
+      db.run(`ALTER TABLE plants ADD COLUMN common_name TEXT`);
+    }
+  });
 });
 
 module.exports = db;

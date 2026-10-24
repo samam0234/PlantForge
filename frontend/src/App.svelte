@@ -1,13 +1,30 @@
 <script>
+  import { onMount } from 'svelte';
   import ImageUpload from './lib/components/ImageUpload.svelte';
   import IdentificationResult from './lib/components/IdentificationResult.svelte';
   import CareGuide from './lib/components/CareGuide.svelte';
   import PlantCollection from './lib/components/PlantCollection.svelte';
-  import { currentResult, plantCollection, isLoading, activeTab } from './lib/stores/plants.js';
-  import { identifyPlantApi } from './lib/api/plant.js';
+  import { currentResult, plantCollection, isLoading, collectionLoading, activeTab } from './lib/stores/plants.js';
+  import { identifyPlantApi, getPlantsApi } from './lib/api/plant.js';
 
   let toast = { type: '', message: '' };
   let toastTimer;
+
+  onMount(() => {
+    loadCollection();
+  });
+
+  async function loadCollection() {
+    $collectionLoading = true;
+    try {
+      const res = await getPlantsApi();
+      plantCollection.set(res.plants || []);
+    } catch (err) {
+      showToast(err.message || '식물 목록을 불러오지 못했습니다.', 'error');
+    } finally {
+      $collectionLoading = false;
+    }
+  }
 
   function handleFileSelected() {
     $currentResult = null;
@@ -142,6 +159,7 @@
               <IdentificationResult
                 result={$currentResult}
                 on:added={handlePlantAdded}
+                on:error={handleUploadError}
               />
 
               <CareGuide
@@ -160,7 +178,7 @@
       </div>
     {:else if $activeTab === 'collection'}
       <!-- 탭 2: 내 식물 컬렉션 화면 -->
-      <PlantCollection />
+      <PlantCollection on:error={handleUploadError} />
     {/if}
   </main>
 

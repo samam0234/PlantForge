@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { addPlantApi } from '../api/plant.js';
   import { plantCollection } from '../stores/plants.js';
 
   export let result;
@@ -11,33 +12,40 @@
 
   $: confidencePercentage = Math.round((result?.confidence || 0) * 100);
 
-  function handleAddToCollection() {
-    if (!nickname.trim()) {
-      nickname = result.common_name || result.species;
-    }
-
+  async function handleAddToCollection() {
+    const chosenName = nickname.trim() || result.common_name || result.species;
+    nickname = chosenName;
     isSaving = true;
 
-    // 컬렉션 스토어에 추가
-    const newPlant = {
-      id: Date.now(),
-      nickname: nickname.trim(),
-      species: result.species,
-      common_name: result.common_name,
-      scientific_name: result.scientific_name,
-      image_path: result.imageUrl || 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=600&q=80',
-      created_at: new Date().toISOString().split('T')[0],
-      care_guide: result.care_guide
-    };
-
-    plantCollection.update(list => [newPlant, ...list]);
-
-    setTimeout(() => {
-      isSaving = false;
+    try {
+      const saved = await addPlantApi({
+        nickname: chosenName,
+        species: result.species,
+        common_name: result.common_name,
+        scientific_name: result.scientific_name,
+        care_guide: result.care_guide,
+        image_path: result.serverImagePath || '',
+        identification_id: result.identificationId
+      });
+      const newPlant = saved.plant || {
+        id: saved.id,
+        nickname: chosenName,
+        species: result.species,
+        common_name: result.common_name,
+        scientific_name: result.scientific_name,
+        image_path: result.serverImagePath || '',
+        care_guide: result.care_guide,
+        created_at: new Date().toISOString()
+      };
+      plantCollection.update((list) => [newPlant, ...list.filter((item) => item.id !== newPlant.id)]);
       saveSuccess = true;
       dispatch('added', newPlant);
       setTimeout(() => (saveSuccess = false), 3000);
-    }, 400);
+    } catch (err) {
+      dispatch('error', { message: err.message || '컬렉션에 저장하지 못했습니다.' });
+    } finally {
+      isSaving = false;
+    }
   }
 </script>
 
