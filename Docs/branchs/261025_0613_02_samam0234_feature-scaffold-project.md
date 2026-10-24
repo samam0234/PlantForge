@@ -1,0 +1,28 @@
+# 커밋 기록
+
+- **날짜/시간**: 261025_0613
+- **작성자**: samam0234
+- **브랜치**: feature/scaffold-project
+- **커밋 메시지**: feat(skeleton): 프론트엔드 UI 프리뷰, 백엔드 및 AI 서버 기본 뼈대 구축
+- **변경 내용**:
+  - **Frontend (Svelte + Vite)**:
+    - 이미지 드래그앤드롭 및 실시간 미리보기 (`ImageUpload.svelte`)
+    - 식별 결과 카드 및 신뢰도 게이지 바 (`IdentificationResult.svelte`)
+    - 6대 식물 관리 가이드 시각화 카드 (`CareGuide.svelte`)
+    - 내 식물 정원 컬렉션 갤러리 및 상세 가이드 모달 (`PlantCollection.svelte`)
+    - Svelte Writable 스토어 및 Mock 데이터 기반 즉시 프리뷰 UI 구축
+    - `frontend/README.md` 작성
+  - **Backend (Express.js)**:
+    - Multer 기반 파일 업로드 미들웨어 (`src/middleware/upload.js`)
+    - SQLite 데이터베이스 스키마 및 초기화 (`src/db/database.js`)
+    - Flask AI 서버 연동 Axios 클라이언트 (`src/services/aiClient.js`)
+    - 식별 및 컬렉션 CRUD 라우트 (`src/routes/identify.js`, `src/routes/plants.js`)
+    - `backend/README.md` 작성
+  - **AI Server (Flask)**:
+    - Flask 메인 엔트리포인트 및 CORS, 헬스체크 설정 (`app/main.py`)
+    - 식물 종 식별 엔드포인트 블루프린트 (`app/routes/identify.py`)
+    - Vision 서비스 및 Care Guide 서비스 스켈레톤 (`app/services/`)
+    - 응답 데이터 스키마 정의 (`app/models/schemas.py`)
+    - `ai-server/README.md` 작성
+- **관련 이슈/작업**: 프로젝트 기본 골격(Phase 1) 3계층 아키텍처 스켈레톤 완성
+- **비고**: 규칙 준수 (SSOT: AGENTS.md, feature 브랜치 격리 작업)
