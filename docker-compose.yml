@@ -37,7 +37,10 @@ services:
     environment:
       - FLASK_PORT=5000
       - FLASK_ENV=development
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AI_PROVIDER=${AI_PROVIDER:-auto}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_VISION_MODEL=${OPENAI_VISION_MODEL:-gpt-4o-mini}
+      - OPENAI_GUIDE_MODEL=${OPENAI_GUIDE_MODEL:-gpt-4o-mini}
 
 volumes:
   backend-uploads:

@@ -33,9 +33,15 @@
     isDragging = false;
   }
 
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   function processFile(file) {
-    if (!file.type.startsWith('image/')) {
-      alert('이미지 파일(JPG, PNG, WEBP)만 업로드 가능합니다.');
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      dispatch('error', { message: 'JPG, PNG, WEBP 파일만 업로드할 수 있습니다.' });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      dispatch('error', { message: '이미지 용량은 10MB 이하여야 합니다.' });
       return;
     }
     selectedFile = file;
@@ -48,9 +54,11 @@
   }
 
   function startAnalysis() {
-    if (selectedFile || previewUrl) {
-      dispatch('analyze', { file: selectedFile, previewUrl });
+    if (!selectedFile) {
+      dispatch('error', { message: '분석할 식물 사진을 먼저 선택해 주세요.' });
+      return;
     }
+    dispatch('analyze', { file: selectedFile, previewUrl });
   }
 
   function resetImage() {
@@ -58,11 +66,18 @@
     selectedFile = null;
   }
 
-  // 데모 샘플 빠른 채우기
-  function loadSample(url, name) {
-    previewUrl = url;
-    selectedFile = null;
-    dispatch('fileSelected', { file: null, previewUrl, sampleName: name });
+  async function loadSample(url, name) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('샘플 이미지를 불러오지 못했습니다.');
+      }
+      const blob = await response.blob();
+      const file = new File([blob], `${name}.jpg`, { type: blob.type || 'image/jpeg' });
+      processFile(file);
+    } catch (err) {
+      dispatch('error', { message: err.message || '샘플 이미지를 불러오지 못했습니다.' });
+    }
   }
 </script>
 
@@ -112,21 +127,21 @@
         <button
           type="button"
           class="sample-btn"
-          on:click={() => loadSample('https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80', '몬스테라')}
+          on:click={() => loadSample('/samples/monstera.jpg', '몬스테라')}
         >
           🌿 몬스테라
         </button>
         <button
           type="button"
           class="sample-btn"
-          on:click={() => loadSample('https://images.unsplash.com/photo-1596547609652-9cf5d8d76921?auto=format&fit=crop&w=800&q=80', '스킨답서스')}
+          on:click={() => loadSample('/samples/pothos.jpg', '스킨답서스')}
         >
           🍃 스킨답서스
         </button>
         <button
           type="button"
           class="sample-btn"
-          on:click={() => loadSample('https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&w=800&q=80', '다육이')}
+          on:click={() => loadSample('/samples/echeveria.jpg', '에케베리아')}
         >
           🪴 다육식물
         </button>

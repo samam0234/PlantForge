@@ -11,7 +11,7 @@
         {speciesName ? `${speciesName} 맞춤형 관리 가이드` : '식물 관리 가이드'}
       </h3>
     </div>
-    <span class="badge badge-green">AI 케어 닥터</span>
+    <span class="badge badge-green">{guide.source === 'llm' ? 'LLM 가이드' : '식물 가이드'}</span>
   </div>
 
   <div class="guide-grid">
@@ -74,7 +74,7 @@
   <div class="seasonal-tip">
     <span class="tip-badge">💡 식물 집사의 꿀팁</span>
     <span class="tip-text">
-      잎 표면에 분무기로 자주 미온수를 뿌려주면 공중 습도를 유지하고 해충 발생을 예방할 수 있습니다.
+      {guide.seasonal_tip || '계절이 바뀌면 물 주는 간격부터 조절하세요. 겨울에는 대부분의 실내 식물이 물을 덜 필요로 합니다.'}
     </span>
   </div>
 </div>
