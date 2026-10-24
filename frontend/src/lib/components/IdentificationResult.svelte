@@ -43,7 +43,7 @@
 
 <div class="result-card card animate-fade-in">
   <div class="card-badge-row">
-    <span class="badge badge-green">✨ AI 식별 완료</span>
+    <span class="badge badge-green">{result.provider === 'openai-vision' ? 'Vision 식별 완료' : '카탈로그 추정 완료'}</span>
     <span class="match-score">일치도 <strong>{confidencePercentage}%</strong></span>
   </div>
 
@@ -58,6 +58,10 @@
       </div>
     </div>
   </div>
+
+  {#if result.analysis_note}
+    <p class="analysis-note">{result.analysis_note}</p>
+  {/if}
 
   <!-- 상위 후보 2~3위 리스트 -->
   {#if result.candidates && result.candidates.length > 1}
@@ -136,6 +140,13 @@
     font-size: 0.95rem;
     color: var(--text-muted);
     margin-top: 2px;
+  }
+
+  .analysis-note {
+    margin-top: 12px;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+    line-height: 1.45;
   }
 
   .meter-container {

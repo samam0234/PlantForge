@@ -12,7 +12,7 @@ class AIClient {
   constructor(baseURL = AI_SERVER_URL) {
     this.client = axios.create({
       baseURL,
-      timeout: 30000 // AI 모델 응답 대기 (30초)
+      timeout: 60000
     });
   }
 
@@ -42,33 +42,31 @@ class AIClient {
       const response = await this.client.post('/identify', formData, {
         headers: {
           ...formData.getHeaders()
-        }
+        },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
       });
+
+      if (response.data?.status === 'error') {
+        const err = new Error(response.data.message || 'AI 서버가 식별에 실패했습니다.');
+        err.status = 502;
+        throw err;
+      }
 
       return response.data;
     } catch (error) {
-      console.error('[AIClient] 식별 요청 실패:', error.message);
-      
-      // AI 서버 미실행 시 개발 편의를 위한 Fallback 목업 반환
-      return {
-        status: 'mock_fallback',
-        species: 'Monstera Deliciosa',
-        common_name: '몬스테라 델리시오사',
-        scientific_name: 'Monstera deliciosa',
-        confidence: 0.95,
-        candidates: [
-          { species: 'Monstera Deliciosa', common_name: '몬스테라', scientific_name: 'Monstera deliciosa', confidence: 0.95 },
-          { species: 'Epipremnum aureum', common_name: '스킨답서스', scientific_name: 'Epipremnum aureum', confidence: 0.81 }
-        ],
-        care_guide: {
-          watering: '겉흙이 마르면 충분히 관수 (주 1~2회)',
-          light: '밝은 간접광',
-          temperature: '18~27°C',
-          soil: '배수가 잘 되는 관엽식물용 흙',
-          fertilizer: '생장기 월 1회 액비',
-          notes: '과습에 유의하고 잎을 주기적으로 닦아주세요'
-        }
-      };
+      if (error.response) {
+        const message = error.response.data?.message || 'AI 서버가 식별 요청을 처리하지 못했습니다.';
+        const err = new Error(message);
+        err.status = error.response.status || 502;
+        throw err;
+      }
+      if (!error.status) {
+        const err = new Error('AI 서버에 연결할 수 없습니다. Flask 서버(포트 5000)가 실행 중인지 확인해 주세요.');
+        err.status = 502;
+        throw err;
+      }
+      throw error;
     }
   }
 }

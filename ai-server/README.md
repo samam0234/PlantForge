@@ -104,6 +104,6 @@ pip install -r requirements.txt
 cp .env.example .env
 
 # 4. 서버 구동
-python app/main.py
+python run.py
 # http://localhost:5000 에서 실행됩니다.
 ```

@@ -6,98 +6,52 @@
   import { currentResult, plantCollection, isLoading, activeTab } from './lib/stores/plants.js';
   import { identifyPlantApi } from './lib/api/plant.js';
 
-  let hasAnalyzed = true; // 시각적 프리뷰를 기본적으로 바로 보여줌
-  let alertMessage = '';
+  let toast = { type: '', message: '' };
+  let toastTimer;
 
-  // 파일 선택 이벤트
-  function handleFileSelected(event) {
-    const { previewUrl, sampleName } = event.detail;
-    if (previewUrl) {
-      $currentResult.imageUrl = previewUrl;
-    }
-    if (sampleName) {
-      if (sampleName === '스킨답서스') {
-        $currentResult = {
-          species: 'Epipremnum aureum',
-          common_name: '스킨답서스 (골든 포토스)',
-          scientific_name: 'Epipremnum aureum',
-          confidence: 0.96,
-          imageUrl: previewUrl,
-          candidates: [
-            { species: 'Epipremnum aureum', common_name: '스킨답서스', scientific_name: 'Epipremnum aureum', confidence: 0.96 },
-            { species: 'Philodendron hederaceum', common_name: '필로덴드론', scientific_name: 'Philodendron hederaceum', confidence: 0.72 }
-          ],
-          care_guide: {
-            watering: '겉흙이 마르면 관수 (주 1회 내외)',
-            light: '반음지에서도 잘 적응하며 형광등 불빛으로도 생장',
-            temperature: '18~24°C',
-            soil: '일반 배양토 또는 수경재배',
-            fertilizer: '성장기 2개월에 1회',
-            notes: '공기 정화 능력이 탁월하며 번식력이 매우 좋습니다'
-          }
-        };
-      } else if (sampleName === '다육이') {
-        $currentResult = {
-          species: 'Echeveria elegans',
-          common_name: '에케베리아 (다육식물)',
-          scientific_name: 'Echeveria elegans',
-          confidence: 0.92,
-          imageUrl: previewUrl,
-          candidates: [
-            { species: 'Echeveria elegans', common_name: '에케베리아', scientific_name: 'Echeveria elegans', confidence: 0.92 },
-            { species: 'Haworthia fasciata', common_name: '십이지권', scientific_name: 'Haworthia fasciata', confidence: 0.65 }
-          ],
-          care_guide: {
-            watering: '잎이 쪼글거리거나 속흙까지 완전히 마르면 듬뿍 (월 1~2회)',
-            light: '직사광선 또는 매우 밝은 채광 필수',
-            temperature: '15~28°C (겨울철 5°C 이상 유지)',
-            soil: '마사토 비율이 50% 이상인 다육 전용토',
-            fertilizer: '봄철 1회 소량만 시비',
-            notes: '습기에 취약하므로 통풍이 잘되는 창가에 배치하세요'
-          }
-        };
-      }
-    }
+  function handleFileSelected() {
+    $currentResult = null;
   }
 
-  // 분석 시작
   async function handleAnalyze(event) {
     const { file, previewUrl } = event.detail;
+    if (!file) {
+      showToast('분석할 식물 사진을 먼저 선택해 주세요.', 'error');
+      return;
+    }
+
     $isLoading = true;
+    $currentResult = null;
 
     try {
-      if (file) {
-        // 백엔드 API 호출 시도 (Express -> Flask)
-        const res = await identifyPlantApi(file);
-        if (res.success && res.data) {
-          $currentResult = {
-            ...res.data,
-            imageUrl: previewUrl
-          };
-        }
-      } else {
-        // 시각적 데모 딜레이 연출
-        await new Promise(r => setTimeout(r, 800));
-      }
-      hasAnalyzed = true;
+      const res = await identifyPlantApi(file);
+      $currentResult = {
+        ...res.data,
+        imageUrl: previewUrl,
+        serverImagePath: res.imageUrl,
+        identificationId: res.identificationId
+      };
     } catch (err) {
-      console.warn('백엔드 서버 미응답 또는 오류 발생: 데모 목업 모드로 전환합니다', err);
-      await new Promise(r => setTimeout(r, 600));
-      hasAnalyzed = true;
+      showToast(err.message || '식물 식별에 실패했습니다.', 'error');
     } finally {
       $isLoading = false;
     }
   }
 
   function handlePlantAdded() {
-    showAlert('식물이 내 컬렉션에 추가되었습니다! 🌿');
+    showToast('식물이 내 컬렉션에 추가되었습니다.', 'success');
   }
 
-  function showAlert(msg) {
-    alertMessage = msg;
-    setTimeout(() => {
-      alertMessage = '';
-    }, 3000);
+  function handleUploadError(event) {
+    showToast(event.detail.message, 'error');
+  }
+
+  function showToast(message, type = 'success') {
+    toast = { type, message };
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast = { type: '', message: '' };
+    }, 4000);
   }
 </script>
 
@@ -136,9 +90,9 @@
   </header>
 
   <!-- 알림 토스트 -->
-  {#if alertMessage}
-    <div class="toast-alert animate-fade-in">
-      {alertMessage}
+  {#if toast.message}
+    <div class="toast-alert {toast.type} animate-fade-in">
+      {toast.message}
     </div>
   {/if}
 
@@ -164,20 +118,26 @@
           <ImageUpload
             on:fileSelected={handleFileSelected}
             on:analyze={handleAnalyze}
+            on:error={handleUploadError}
           />
 
-          <!-- 시각적 미리보기 안내 카드 -->
           <div class="info-card card">
-            <h4 class="info-card-title">💡 시각적 프리뷰 가이드</h4>
+            <h4 class="info-card-title">사진 한 장이 분석까지</h4>
             <p class="info-card-desc">
-              현재 화면은 프론트엔드의 비주얼 인터페이스를 즉시 확인할 수 있도록 샘플 데이터와 함께 구성되어 있습니다. 사진을 변경하거나 샘플 버튼을 누르면 다른 식물의 가이드를 바로 볼 수 있습니다.
+              업로드한 이미지는 Express가 보관한 뒤 Flask로 전달됩니다. API 키가 있으면 Vision 모델이, 없으면 내장 식물 카탈로그가 종과 관리 가이드를 돌려줍니다.
             </p>
           </div>
         </div>
 
         <!-- 우측: 식별 결과 & 상세 가이드 -->
         <div class="col-right">
-          {#if hasAnalyzed && $currentResult}
+          {#if $isLoading}
+            <div class="placeholder-card card">
+              <span class="ph-icon spinner-lg"></span>
+              <h3>식물을 살펴보는 중입니다</h3>
+              <p>사진을 Express로 보낸 뒤 Flask가 종과 관리 가이드를 만들고 있습니다.</p>
+            </div>
+          {:else if $currentResult}
             <div class="results-stack">
               <IdentificationResult
                 result={$currentResult}
@@ -427,6 +387,26 @@
     font-weight: 600;
     box-shadow: var(--shadow-md);
     z-index: 1000;
+    max-width: min(420px, calc(100vw - 32px));
+  }
+
+  .toast-alert.error {
+    background: #9b2226;
+  }
+
+  .spinner-lg {
+    width: 42px;
+    height: 42px;
+    border: 3px solid var(--accent-soft);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+    font-size: 0;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   /* Footer */
