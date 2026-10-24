@@ -30,6 +30,14 @@ async function parseResponse(response, fallbackMessage) {
  * 식물 사진 업로드 및 식별 요청
  * @param {File} file
  */
+export async function getHealthApi() {
+  const response = await fetch(`${API_BASE}/health`);
+  if (!response.ok) {
+    throw new Error('백엔드 상태를 확인하지 못했습니다.');
+  }
+  return response.json();
+}
+
 export async function identifyPlantApi(file) {
   const formData = new FormData();
   formData.append('image', file);

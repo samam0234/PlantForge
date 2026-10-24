@@ -22,7 +22,7 @@
 ┌─────────────────────────┐         ┌─────────────────────────┐         ┌─────────────────────────┐
 │     Svelte (Vite)       │ ──────▶ │       Express.js        │ ──────▶ │      Flask (Python)     │
 │       Frontend          │ ◀────── │      Orchestrator       │ ◀────── │        AI Server        │
-│   (UI / Mock Preview)   │         │ (Upload, DB, Route API) │         │ (Vision AI / Guide LLM) │
+│  (업로드 · 결과 · 정원) │         │ (Upload, DB, Route API) │         │ (Vision / 카탈로그 가이드) │
 │       Port: 5173        │         │       Port: 3000        │         │       Port: 5000        │
 └─────────────────────────┘         └─────────────────────────┘         └─────────────────────────┘
                                                  │
@@ -43,7 +43,7 @@ plantforge/
 │   ├── src/
 │   │   ├── lib/
 │   │   │   ├── components/       # ImageUpload, IdentificationResult, CareGuide, PlantCollection
-│   │   │   ├── api/              # plant.js (API 클라이언트 뼈대)
+│   │   │   ├── api/              # plant.js (Express API 클라이언트)
 │   │   │   └── stores/           # plants.js (식물 상태 저장소)
 │   │   ├── App.svelte            # 메인 시각적 대시보드 뷰
 │   │   ├── main.js
@@ -55,7 +55,7 @@ plantforge/
 ├── backend/                      # Express.js (오케스트레이션 및 CRUD API)
 │   ├── src/
 │   │   ├── routes/               # identify.js, plants.js
-│   │   ├── services/             # aiClient.js (Flask AI 연동 스켈레톤)
+│   │   ├── services/             # aiClient.js (Flask 식별 호출)
 │   │   ├── db/                   # database.js (SQLite 스키마 초기화)
 │   │   ├── middleware/           # upload.js (Multer 파일 업로드)
 │   │   └── app.js                # Express 엔트리포인트
@@ -67,7 +67,7 @@ plantforge/
 ├── ai-server/                    # Flask (AI 이미지 분석 및 가이드 생성)
 │   ├── app/
 │   │   ├── routes/               # identify.py (/identify 엔드포인트)
-│   │   ├── services/             # vision_service.py, guide_service.py
+│   │   ├── services/             # vision_service.py, guide_service.py, plant_catalog.py
 │   │   ├── models/               # schemas.py
 │   │   └── main.py               # Flask 엔트리포인트
 │   ├── requirements.txt
@@ -100,23 +100,11 @@ plantforge/
 - Python (3.10+)
 - npm 또는 pnpm
 
+API 키 없이도 동작합니다. `ai-server/.env`에 `OPENAI_API_KEY`를 넣고 `AI_PROVIDER=auto`로 두면 종 식별과 관리 가이드가 OpenAI를 사용하고, 키가 없거나 호출에 실패하면 내장 식물 카탈로그로 넘어갑니다.
+
+서버는 AI 서버, Express, Svelte 순서로 켭니다.
+
 ### 2. 각 서비스 실행 방법
-
-#### Frontend (Svelte + Vite)
-```bash
-cd frontend
-npm install
-npm run dev
-# 접속: http://localhost:5173
-```
-
-#### Backend (Express.js)
-```bash
-cd backend
-npm install
-npm run dev # 또는 node src/app.js
-# 실행: http://localhost:3000
-```
 
 #### AI Server (Flask)
 ```bash
@@ -127,29 +115,36 @@ venv\Scripts\activate
 # Mac/Linux:
 # source venv/bin/activate
 pip install -r requirements.txt
-python app/main.py
+copy .env.example .env
+python run.py
 # 실행: http://localhost:5000
+```
+
+#### Backend (Express.js)
+```bash
+cd backend
+npm install
+copy .env.example .env
+npm run dev
+# 실행: http://localhost:3000
+```
+
+#### Frontend (Svelte + Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+# 접속: http://localhost:5173
 ```
 
 ---
 
 ## 🌿 주요 기능 안내
 
-1. **식물 사진 업로드 (UI 프리뷰)**:
-   - 드래그 앤 드롭 및 파일 브라우징 지원
-   - 업로드 즉시 이미지 실시간 미리보기
-2. **AI 종 식별 결과 카드**:
-   - 한글 명칭, 학명, 일치 신뢰도(%) 시각화
-   - 2~3위 상위 후보 종 비교 표시
-3. **상세 식물 관리 가이드**:
-   - 💧 물주기 (주기 및 팁)
-   - ☀️ 채광 조건 (직사광, 간접광 등)
-   - 🌡️ 적정 온도 범위
-   - 🪴 토양 및 분갈이 팁
-   - ⚠️ 반려동물 독성 및 주의사항
-4. **내 식물 컬렉션 관리**:
-   - 나만의 애칭(Nickname) 부여
-   - 즐겨찾기 및 식물 관리 목록 보관
+1. **식물 사진 업로드**: JPG, PNG, WEBP, 최대 10MB. 드래그 앤 드롭과 샘플 이미지를 지원합니다.
+2. **종 식별**: Express가 이미지를 Flask에 전달합니다. 결과 카드에 한글 이름, 학명, 신뢰도, 상위 후보가 표시됩니다.
+3. **관리 가이드**: 물주기, 채광, 온도, 토양, 비료, 주의사항, 계절 팁을 보여 줍니다.
+4. **내 식물 정원**: 애칭과 함께 SQLite에 저장하고, 목록 조회와 삭제가 가능합니다. 상단 배지는 백엔드와 AI 서버 연결 상태를 표시합니다.
 
 ---
 

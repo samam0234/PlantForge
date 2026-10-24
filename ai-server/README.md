@@ -22,8 +22,9 @@ ai-server/
 │   │   └── identify.py       # POST /identify 라우트 블루프린트
 │   ├── services/
 │   │   ├── __init__.py
-│   │   ├── vision_service.py # 이미지 분석 및 종 식별 스켈레톤
-│   │   └── guide_service.py  # 식물 관리 가이드 생성 스켈레톤
+│   │   ├── vision_service.py # OpenAI Vision 또는 로컬 색상 카탈로그 식별
+│   │   ├── guide_service.py  # LLM 또는 카탈로그 관리 가이드
+│   │   └── plant_catalog.py  # 실내 식물 기준 데이터
 │   └── models/
 │       ├── __init__.py
 │       └── schemas.py        # 응답 데이터 클래스 및 스키마
@@ -43,7 +44,8 @@ ai-server/
 {
   "service": "PlantForge AI Server",
   "status": "online",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "provider": { "configured": "auto", "active": "local-catalog" }
 }
 ```
 

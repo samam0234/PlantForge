@@ -5,14 +5,34 @@
   import CareGuide from './lib/components/CareGuide.svelte';
   import PlantCollection from './lib/components/PlantCollection.svelte';
   import { currentResult, plantCollection, isLoading, collectionLoading, activeTab } from './lib/stores/plants.js';
-  import { identifyPlantApi, getPlantsApi } from './lib/api/plant.js';
+  import { identifyPlantApi, getPlantsApi, getHealthApi } from './lib/api/plant.js';
 
   let toast = { type: '', message: '' };
   let toastTimer;
+  let systemLabel = '상태 확인 중';
+  let systemClass = 'badge-amber';
 
   onMount(() => {
     loadCollection();
+    refreshHealth();
   });
+
+  async function refreshHealth() {
+    try {
+      const health = await getHealthApi();
+      const aiOnline = health.aiServer?.status === 'online';
+      if (aiOnline) {
+        systemLabel = '시스템 정상';
+        systemClass = 'badge-green';
+      } else {
+        systemLabel = 'AI 서버 오프라인';
+        systemClass = 'badge-amber';
+      }
+    } catch {
+      systemLabel = '백엔드 오프라인';
+      systemClass = 'badge-amber';
+    }
+  }
 
   async function loadCollection() {
     $collectionLoading = true;
@@ -101,7 +121,7 @@
       </nav>
 
       <div class="header-badges">
-        <span class="badge badge-green">● 시스템 정상</span>
+        <span class="badge {systemClass}">● {systemLabel}</span>
       </div>
     </div>
   </header>
@@ -327,6 +347,21 @@
   @media (max-width: 900px) {
     .identify-layout {
       grid-template-columns: 1fr;
+    }
+
+    .header-inner {
+      height: auto;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 0;
+    }
+
+    .hero-title {
+      font-size: 1.45rem;
+    }
+
+    .nav-tabs {
+      order: 3;
     }
   }
 
