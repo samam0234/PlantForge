@@ -143,7 +143,7 @@ plantforge/
 ├── Docs/                         # 문서 저장 폴더 (아래 구조 필수)
 │   ├── plan/
 │   ├── Architecture/
-│   ├── branchs/
+│   ├── commits/
 │   ├── find_debug/
 │   ├── guidance/
 │   ├── trainings/
@@ -162,7 +162,7 @@ plantforge/
 |------|------|
 | [plan/](./Docs/plan/) | 초기 기획·로직·DB·배포 계획 |
 | [Architecture/](./Docs/Architecture/) | 시스템·계층·데이터 흐름 아키텍처 |
-| [branchs/](./Docs/branchs/) | 브랜치·커밋 기록 (템플릿 필수) |
+| [commits/](./Docs/commits/) | 브랜치·커밋 기록 (템플릿 필수) |
 | [find_debug/](./Docs/find_debug/) | 작업/실행 디버깅 일일 기록 |
 | [guidance/](./Docs/guidance/) | 기능·실행 가이드 |
 | [trainings/](./Docs/trainings/) | 학습·연구 정리 |
@@ -245,12 +245,12 @@ plantforge/
 **type 후보**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`
 
 ### 6.2 커밋 기록 문서화
-- 커밋마다 `Docs/branchs/YYMMDD_HHMM_[id]_[이름]_[브랜치].md` 작성
-- 템플릿 파일을 `Docs/branchs/_template.md`에 두고 사용
+- 커밋마다 `Docs/commits/YYMMDD_HHMM_[id]_[이름]_[브랜치].md` 작성
+- 템플릿 파일을 `Docs/commits/_template.md`에 두고 사용
 - 기록 파일도 같은 브랜치에 커밋·푸시
 - 경로와 파일명 규칙 고정 (위치가 흩어지지 않게)
 
-**템플릿 예시** (`Docs/branchs/_template.md`):
+**템플릿 예시** (`Docs/commits/_template.md`):
 ```markdown
 # 커밋 기록
 
@@ -323,7 +323,7 @@ plantforge/
 **에이전트 공통 지시**:
 - 작업 시작 전 `AGENTS.md` 및 본 인수인계 문서 확인
 - feature/* 브랜치에서만 작업
-- 커밋 시 반드시 `Docs/branchs/`에 기록 파일 생성
+- 커밋 시 반드시 `Docs/commits/`에 기록 파일 생성
 - 병합/push는 사용자 명시적 지시 후에만
 - 역할 분리 위반 금지 (예: Svelte에서 AI 호출 직접 하지 말 것)
 
