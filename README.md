@@ -77,7 +77,7 @@ plantforge/
 ├── Docs/                         # 인수인계 및 프로젝트 문서 표준 폴더
 │   ├── plan/                     # 기획서 및 인수인계 문서
 │   ├── Architecture/             # 시스템 아키텍처 다이어그램 및 설계서
-│   ├── branchs/                  # 커밋 기록 (_template.md 필수 포함)
+│   ├── commits/                  # 커밋 기록 (_template.md 필수 포함)
 │   ├── find_debug/               # 디버깅 일일 기록
 │   ├── guidance/                 # 가이드라인
 │   ├── trainings/                # 연구 및 학습 자료
@@ -149,4 +149,4 @@ npm run dev
 ---
 
 ## 📜 협업 및 규칙
-프로젝트에 기여하거나 AI 에이전트를 활용할 때는 [AGENTS.md](./AGENTS.md)의 커밋 컨벤션(`type(scope): 한국어 요약`), `Docs/branchs/` 커밋 기록 생성 규칙, 브랜치 전략(`feature/*`)을 반드시 준수해야 합니다.
+프로젝트에 기여하거나 AI 에이전트를 활용할 때는 [AGENTS.md](./AGENTS.md)의 커밋 컨벤션(`type(scope): 한국어 요약`), `Docs/commits/` 커밋 기록 생성 규칙, 브랜치 전략(`feature/*`)을 반드시 준수해야 합니다.

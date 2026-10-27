@@ -41,8 +41,8 @@
 - **사용 가능한 type**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`
 
 ### 2.2 커밋 기록 문서화 (필수)
-- 커밋마다 `Docs/branchs/YYMMDD_HHMM_[id]_[이름]_[브랜치].md` 작성
-- `Docs/branchs/_template.md` 양식 준수
+- 커밋마다 `Docs/commits/YYMMDD_HHMM_[id]_[이름]_[브랜치].md` 작성
+- `Docs/commits/_template.md` 양식 준수
 - 기록 파일도 해당 브랜치에 함께 커밋/푸시
 
 ### 2.3 브랜치 전략
@@ -59,7 +59,7 @@
 ### 2.5 Docs 폴더 구조
 - `Docs/plan/`: 초기 기획, 로직, DB, 배포 계획
 - `Docs/Architecture/`: 시스템, 계층, 데이터 흐름 아키텍처
-- `Docs/branchs/`: 커밋/브랜치 기록 (템플릿: `_template.md`)
+- `Docs/commits/`: 커밋/브랜치 기록 (템플릿: `_template.md`)
 - `Docs/find_debug/`: 작업 및 실행 디버깅 기록
 - `Docs/guidance/`: 기능 및 실행 가이드
 - `Docs/trainings/`: 학습 및 연구 정리
