@@ -9,6 +9,7 @@ const path = require('path');
 const identifyRouter = require('./routes/identify');
 const plantsRouter = require('./routes/plants');
 const aiClient = require('./services/aiClient');
+const { connect } = require('./db/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,9 +56,16 @@ app.use((err, req, res, next) => {
 
 // 서버 실행
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🌿 PlantForge Backend running on http://localhost:${PORT}`);
-  });
+  connect()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`🌿 PlantForge Backend running on http://localhost:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('❌ MongoDB 연결 실패:', err.message);
+      process.exit(1);
+    });
 }
 
 module.exports = app;

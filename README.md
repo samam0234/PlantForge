@@ -28,8 +28,8 @@
                                                  │
                                                  ▼
                                     ┌─────────────────────────┐
-                                    │      SQLite DB          │
-                                    │   (plantforge.db)       │
+                                    │        MongoDB          │
+                                    │   (plantforge DB)       │
                                     └─────────────────────────┘
 ```
 
@@ -56,7 +56,7 @@ plantforge/
 │   ├── src/
 │   │   ├── routes/               # identify.js, plants.js
 │   │   ├── services/             # aiClient.js (Flask 식별 호출)
-│   │   ├── db/                   # database.js (SQLite 스키마 초기화)
+│   │   ├── db/                   # database.js (MongoDB 연결)
 │   │   ├── middleware/           # upload.js (Multer 파일 업로드)
 │   │   └── app.js                # Express 엔트리포인트
 │   ├── uploads/                  # 업로드 임시 저장소
@@ -144,7 +144,7 @@ npm run dev
 1. **식물 사진 업로드**: JPG, PNG, WEBP, 최대 10MB. 드래그 앤 드롭과 샘플 이미지를 지원합니다.
 2. **종 식별**: Express가 이미지를 Flask에 전달합니다. 결과 카드에 한글 이름, 학명, 신뢰도, 상위 후보가 표시됩니다.
 3. **관리 가이드**: 물주기, 채광, 온도, 토양, 비료, 주의사항, 계절 팁을 보여 줍니다.
-4. **내 식물 정원**: 애칭과 함께 SQLite에 저장하고, 목록 조회와 삭제가 가능합니다. 상단 배지는 백엔드와 AI 서버 연결 상태를 표시합니다.
+4. **내 식물 정원**: 애칭과 함께 MongoDB에 저장하고, 목록 조회와 삭제가 가능합니다. 상단 배지는 백엔드와 AI 서버 연결 상태를 표시합니다.
 
 ---
 

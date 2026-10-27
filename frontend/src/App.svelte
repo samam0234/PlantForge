@@ -212,7 +212,7 @@
         <span class="arrow">⇄</span>
         <span class="pill">Flask 5000</span>
         <span class="arrow">⇄</span>
-        <span class="pill">SQLite</span>
+        <span class="pill">MongoDB</span>
       </div>
       <p class="footer-copy">© 2026 PlantForge • AI 기반 식물 식별 및 관리 가이드 플랫폼</p>
     </div>

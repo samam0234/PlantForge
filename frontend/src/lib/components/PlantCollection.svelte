@@ -55,7 +55,7 @@
   {#if $collectionLoading}
     <div class="empty-state card">
       <h3>정원 목록을 불러오는 중입니다</h3>
-      <p>SQLite에 저장된 식물을 확인하고 있습니다.</p>
+      <p>MongoDB에 저장된 식물을 확인하고 있습니다.</p>
     </div>
   {:else if $plantCollection.length === 0}
     <div class="empty-state card">

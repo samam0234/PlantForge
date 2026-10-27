@@ -1,13 +1,13 @@
 # 🌿 PlantForge Backend (Orchestrator)
 
-PlantForge의 파일 업로드, AI 서버 오케스트레이션, SQLite 데이터베이스 관리 및 컬렉션 CRUD를 담당하는 Express.js 기반 백엔드 서비스입니다.
+PlantForge의 파일 업로드, AI 서버 오케스트레이션, MongoDB 데이터베이스 관리 및 컬렉션 CRUD를 담당하는 Express.js 기반 백엔드 서비스입니다.
 
 ---
 
 ## 📌 주요 역할
 - **이미지 업로드 처리**: Multer 미들웨어로 단일 식물 이미지 수신 및 유효성 검사 (최대 10MB, JPG/PNG/WEBP)
 - **AI 서비스 오케스트레이션**: 업로드된 이미지를 Flask AI 서버 (`POST /identify`)로 전달하고 통합 결과 수신
-- **데이터 영속화 (SQLite)**: 식물 컬렉션(`plants`) 및 식별 로그(`identifications`) 데이터베이스 관리
+- **데이터 영속화 (MongoDB)**: 식물 컬렉션(`plants`) 및 식별 로그(`identifications`) 데이터베이스 관리
 - **컬렉션 CRUD API**: 식물 등록, 목록 조회, 상세 조회, 삭제 기능 제공
 
 ---
@@ -26,7 +26,7 @@ backend/
 │   ├── middleware/
 │   │   └── upload.js        # Multer 업로드 미들웨어
 │   └── db/
-│       └── database.js      # SQLite 데이터베이스 연결 및 테이블 스키마
+│       └── database.js      # MongoDB 연결 (`plants`, `identifications` 컬렉션)
 ├── uploads/                 # 이미지 임시 저장소
 ├── package.json             # 패키지 명세
 ├── .env.example             # 환경 변수 템플릿
