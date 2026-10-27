@@ -1,8 +1,10 @@
 """Plant identification from an uploaded image.
 
 Provider selection (AI_PROVIDER):
-- auto: OpenAI Vision when a real API key exists, otherwise the local catalog
-- openai: try OpenAI Vision, then fall back to the local catalog
+- auto: OpenAI Vision when a real API key exists, else BioCLIP when installed,
+  else the local color catalog
+- openai: try OpenAI Vision, then BioCLIP / the local catalog
+- bioclip: local BioCLIP zero-shot (GPU if available), then the local catalog
 - local: color-feature match against the built-in houseplant catalog
 """
 import base64
@@ -14,6 +16,7 @@ from typing import Any, Dict, List
 import requests
 from PIL import Image
 
+from . import bioclip_service
 from .plant_catalog import PLANTS
 
 WEIGHTS = {
@@ -42,16 +45,23 @@ def active_provider() -> str:
         return "local-catalog"
     if _has_openai_key() and mode in {"auto", "openai"}:
         return "openai-vision"
+    if mode in {"auto", "openai", "bioclip"} and bioclip_service.available():
+        return "bioclip"
     return "local-catalog"
 
 
 def provider_status() -> Dict[str, str]:
     mode = os.getenv("AI_PROVIDER", "auto").strip().lower()
-    return {
+    active = active_provider()
+    status = {
         "configured": mode or "auto",
-        "active": active_provider(),
+        "active": active,
         "vision_model": os.getenv("OPENAI_VISION_MODEL", "gpt-4o-mini"),
     }
+    if active == "bioclip":
+        status["vision_model"] = bioclip_service.model_name()
+        status["device"] = bioclip_service.device_name()
+    return status
 
 
 def _features(image_bytes: bytes) -> Dict[str, float]:
@@ -237,21 +247,44 @@ class VisionService:
         _mime_from_bytes(image_bytes, mimetype or "")
 
         mode = os.getenv("AI_PROVIDER", "auto").strip().lower()
-        if mode != "local" and _has_openai_key():
+        provider = active_provider()
+
+        if provider == "openai-vision":
             try:
                 return identify_openai(image_bytes, mimetype)
             except Exception as exc:
-                local = identify_local(image_bytes)
-                local["analysis_note"] = (
-                    f"Vision API 호출에 실패해 로컬 카탈로그로 대체했습니다 ({exc}). "
-                    + LOCAL_NOTE
-                )
-                local["provider"] = "local-catalog"
-                return local
+                return self._fallback(image_bytes, f"Vision API 호출에 실패했습니다 ({exc})")
 
-        if mode == "openai" and not _has_openai_key():
+        if provider == "bioclip":
+            try:
+                result = bioclip_service.identify(image_bytes)
+            except ValueError:
+                raise
+            except Exception as exc:
+                local = identify_local(image_bytes)
+                local["analysis_note"] = f"BioCLIP 실행에 실패해 로컬 카탈로그로 대체했습니다 ({exc}). " + LOCAL_NOTE
+                return local
+            if mode == "openai":
+                result["analysis_note"] = "OPENAI_API_KEY가 없어 로컬 BioCLIP로 식별했습니다. " + result["analysis_note"]
+            return result
+
+        if mode == "openai":
             local = identify_local(image_bytes)
             local["analysis_note"] = "OPENAI_API_KEY가 없어 로컬 카탈로그로 식별했습니다. " + LOCAL_NOTE
             return local
 
         return identify_local(image_bytes)
+
+    def _fallback(self, image_bytes: bytes, reason: str) -> Dict[str, Any]:
+        if bioclip_service.available():
+            try:
+                result = bioclip_service.identify(image_bytes)
+                result["analysis_note"] = f"{reason} 로컬 BioCLIP로 대체했습니다. " + result["analysis_note"]
+                return result
+            except ValueError:
+                raise
+            except Exception:
+                pass
+        local = identify_local(image_bytes)
+        local["analysis_note"] = f"{reason} 로컬 카탈로그로 대체했습니다. " + LOCAL_NOTE
+        return local

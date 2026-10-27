@@ -22,8 +22,10 @@ ai-server/
 │   │   └── identify.py       # POST /identify 라우트 블루프린트
 │   ├── services/
 │   │   ├── __init__.py
-│   │   ├── vision_service.py # OpenAI Vision 또는 로컬 색상 카탈로그 식별
-│   │   ├── guide_service.py  # LLM 또는 카탈로그 관리 가이드
+│   │   ├── vision_service.py # 식별 provider 선택 (OpenAI / BioCLIP / 색상 카탈로그)
+│   │   ├── bioclip_service.py# 로컬 BioCLIP zero-shot 식별 (GPU 자동 사용)
+│   │   ├── plant_labels.py   # BioCLIP 후보 종 목록 (여기에 추가하면 인식 범위 확장)
+│   │   ├── guide_service.py  # OpenAI / Ollama / 카탈로그 관리 가이드
 │   │   └── plant_catalog.py  # 실내 식물 기준 데이터
 │   └── models/
 │       ├── __init__.py
@@ -45,7 +47,7 @@ ai-server/
   "service": "PlantForge AI Server",
   "status": "online",
   "version": "1.0.0",
-  "provider": { "configured": "auto", "active": "local-catalog" }
+  "provider": { "configured": "auto", "active": "bioclip", "vision_model": "hf-hub:imageomics/bioclip-2", "device": "cuda" }
 }
 ```
 
@@ -109,3 +111,27 @@ cp .env.example .env
 python run.py
 # http://localhost:5000 에서 실행됩니다.
 ```
+
+---
+
+## 🧠 로컬 AI 모델 (GPU)
+
+| 용도 | 모델 | 설정 |
+|---|---|---|
+| 종 식별 | BioCLIP 2 (`imageomics/bioclip-2`) | `AI_PROVIDER=auto` 또는 `bioclip` |
+| 관리 가이드 | Ollama 텍스트 LLM (예: `gemma4:12b`) | `OLLAMA_GUIDE_MODEL` |
+
+- 식별은 `plant_labels.py`의 후보 종 중에서 고릅니다. 목록에 없는 식물은 가장 비슷한 종으로 나오므로 신뢰도가 낮게 표시됩니다.
+- 첫 요청 때 BioCLIP 가중치를 Hugging Face에서 내려받습니다(약 1~2GB). 이후에는 메모리에 유지됩니다.
+- 가이드는 `OPENAI_API_KEY`가 있으면 OpenAI, 없고 `OLLAMA_GUIDE_MODEL`이 있으면 Ollama, 둘 다 없으면 카탈로그를 사용합니다.
+
+### GPU 사용 설정
+`pip install -r requirements.txt`로 설치되는 torch는 CPU 빌드일 수 있습니다. GPU를 쓰려면 CUDA 빌드로 교체하세요.
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124 --force-reinstall
+python -c "import torch; print(torch.cuda.is_available())"   # True 여야 합니다
+ollama pull gemma4:12b
+```
+
+`GET /health`의 `provider.device`가 `cuda`인지 확인하세요.

@@ -3,5 +3,6 @@ flask-cors>=4.0.0
 python-dotenv>=1.0.0
 requests>=2.31.0
 Pillow>=10.0.0
-# 향후 확장용 (OpenAI / Transformers 등)
-# openai>=1.12.0
+# 로컬 식별(BioCLIP). GPU를 쓰려면 CUDA 빌드 torch를 먼저 설치하세요 (README 참고)
+torch>=2.2.0
+open_clip_torch>=2.26.0
