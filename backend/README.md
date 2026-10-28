@@ -58,10 +58,12 @@ backend/
     "scientific_name": "Monstera deliciosa",
     "care_guide": { "watering": "...", "light": "..." },
     "image_path": "/uploads/plant-xxx.jpg",
-    "identification_id": 1
+    "identification_id": "<POST /api/identify 응답의 identificationId>"
   }
   ```
 - `DELETE /api/plants/:id` : 특정 식물 삭제
+
+> 식물과 식별 기록의 `id`는 MongoDB ObjectId 문자열입니다. 식물을 삭제하면 연결된 식별 기록의 `plant_id`는 `null`이 됩니다.
 
 ---
 
@@ -81,3 +83,22 @@ npm run dev
 npm start
 # http://localhost:3000 에서 실행됩니다.
 ```
+
+---
+
+## 🗄 MongoDB 설정
+
+| 환경 변수 | 설명 |
+|---|---|
+| `MONGODB_URI` | 연결 문자열. 로컬은 `mongodb://localhost:27017`, Atlas는 `mongodb+srv://사용자:비밀번호@클러스터주소/` (비밀번호의 특수문자는 URL 인코딩) |
+| `MONGODB_DB` | DB 이름 (기본 `plantforge`). 컬렉션은 `plants`, `identifications` |
+| `DNS_SERVERS` | 선택. `mongodb+srv` 조회(`querySrv ECONNREFUSED`)가 막힌 환경에서 `8.8.8.8,1.1.1.1` 지정 |
+| `MONGOD_PATH` | 선택. `npm run db:start`가 쓸 mongod 실행 파일 경로 (기본 `~/mongodb-local/bin/mongod.exe`) |
+
+```bash
+npm run db:start       # 로컬 mongod 기동 (이미 떠 있으면 건너뜀, 데이터: backend/data/mongo)
+npm run migrate:sqlite # 기존 plantforge.db(SQLite) 데이터를 MongoDB로 이관 (재실행 안전)
+npm run verify:api     # 식물 CRUD 스모크 테스트 (임시 데이터는 자동 정리)
+```
+
+Atlas를 쓸 때는 Network Access의 IP 허용 목록에 현재 PC의 IP가 있어야 합니다. `.env`에는 비밀번호가 들어 있으니 커밋하지 마세요.
