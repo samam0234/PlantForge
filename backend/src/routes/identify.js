@@ -7,7 +7,7 @@ const fs = require('fs');
 const router = express.Router();
 const upload = require('../middleware/upload');
 const aiClient = require('../services/aiClient');
-const db = require('../db/database');
+const { getDb } = require('../db/database');
 
 function receiveImage(req, res, next) {
   upload.single('image')(req, res, (err) => {
@@ -34,21 +34,25 @@ router.post('/', receiveImage, async (req, res) => {
 
     const { path: filePath, originalname, filename } = req.file;
     const aiResult = await aiClient.identifyPlant(filePath, originalname);
-    const sql = `
-      INSERT INTO identifications (confidence, raw_result)
-      VALUES (?, ?)
-    `;
 
-    db.run(sql, [aiResult.confidence || 0, JSON.stringify(aiResult)], function (err) {
-      if (err) {
-        console.warn('식별 로그 저장 실패:', err.message);
-      }
-      return res.status(200).json({
-        success: true,
-        imageUrl: `/uploads/${filename}`,
-        identificationId: err ? null : this.lastID,
-        data: aiResult
+    let identificationId = null;
+    try {
+      const { insertedId } = await getDb().collection('identifications').insertOne({
+        plant_id: null,
+        confidence: aiResult.confidence || 0,
+        raw_result: aiResult,
+        created_at: new Date()
       });
+      identificationId = insertedId.toString();
+    } catch (dbErr) {
+      console.warn('식별 로그 저장 실패:', dbErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      imageUrl: `/uploads/${filename}`,
+      identificationId,
+      data: aiResult
     });
   } catch (error) {
     console.error('식물 식별 중 오류 발생:', error.message);
