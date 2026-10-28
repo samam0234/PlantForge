@@ -41,3 +41,6 @@ backend/uploads/*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local MongoDB data
+backend/data/

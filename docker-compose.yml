@@ -21,10 +21,10 @@ services:
     environment:
       - PORT=3000
       - AI_SERVER_URL=http://ai-server:5000
-      - DATABASE_PATH=./plantforge.db
+      - MONGODB_URI=${MONGODB_URI:-mongodb://host.docker.internal:27017}
+      - MONGODB_DB=plantforge
     volumes:
       - backend-uploads:/app/uploads
-      - backend-db:/app/data
     depends_on:
       - ai-server
 
@@ -47,4 +47,3 @@ services:
 
 volumes:
   backend-uploads:
-  backend-db:

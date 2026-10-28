@@ -5,13 +5,16 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js"
+    "dev": "nodemon src/app.js",
+    "migrate:sqlite": "node scripts/migrate-sqlite-to-mongo.js",
+    "verify:api": "node scripts/verify-api.js",
+    "db:start": "node scripts/start-mongod.js"
   },
   "keywords": [
     "plantforge",
     "express",
     "orchestrator",
-    "sqlite"
+    "mongodb"
   ],
   "author": "PlantForge Team",
   "license": "ISC",
@@ -21,10 +24,11 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "form-data": "^4.0.1",
-    "multer": "^1.4.5-lts.1",
-    "sqlite3": "^5.1.7"
+    "mongodb": "^6.21.0",
+    "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "sqlite3": "^5.1.7"
   }
 }

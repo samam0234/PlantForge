@@ -3,7 +3,7 @@
 **프로젝트명**: PlantForge (AI 기반 식물 식별 및 관리 가이드 플랫폼)  
 **버전**: 1.0  
 **작성일**: 2026-10-25  
-**기술 스택**: Svelte + Express.js + Flask + SQLite  
+**기술 스택**: Svelte + Express.js + Flask + MongoDB  
 **상태**: 초기 스켈레톤 구축 및 개발 진행  
 
 ---
@@ -18,14 +18,14 @@
                             │
                             ▼
                      ┌─────────────┐
-                     │   SQLite    │
+                     │   MongoDB   │
                      └─────────────┘
 ```
 
 - **Frontend (`frontend/`)**: 포트 `5173`. Svelte + Vite. 시각적 UI, 이미지 업로드 인터페이스, 식별 결과 및 케어 가이드 표시, 내 식물 컬렉션 뷰. (UI/상태 관리만 담당)
-- **Backend (`backend/`)**: 포트 `3000`. Express.js. Multer 기반 이미지 업로드 처리, Flask AI 호출 오케스트레이션, SQLite DB 연동, 컬렉션 CRUD API 제공.
+- **Backend (`backend/`)**: 포트 `3000`. Express.js. Multer 기반 이미지 업로드 처리, Flask AI 호출 오케스트레이션, MongoDB 연동, 컬렉션 CRUD API 제공.
 - **AI Server (`ai-server/`)**: 포트 `5000`. Flask. 이미지 분석, 식물 종 식별(Vision AI / 식물 DB), LLM 기반 관리 가이드 생성.
-- **Database**: SQLite (`backend/plantforge.db`). `plants`, `identifications` 테이블.
+- **Database**: MongoDB Atlas 무료(M0) 클러스터 `Cluster0` (`MONGODB_URI`, DB명 `plantforge`). `plants`, `identifications` 컬렉션. 로컬 개발용 mongod는 `npm run db:start`.
 
 ---
 
